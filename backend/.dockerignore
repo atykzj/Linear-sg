@@ -1,0 +1,7 @@
+.vscode
+.idea
+*.log
+*.pot
+*.pyc
+__pycache__/
+**/static/*
