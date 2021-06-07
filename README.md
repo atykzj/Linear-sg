@@ -11,6 +11,15 @@ Open 2 Terminals
 
 - Front End
 ```sh
+(lr) C:\...\frontend\react_app>npm build
+(lr) C:\...\frontend\react_app>npm start
+```
+
+
+
+- Front End
+```sh
+(lr) C:\...\frontend\react_app>npm build
 (lr) C:\...\frontend\react_app>npm start
 ```
 
