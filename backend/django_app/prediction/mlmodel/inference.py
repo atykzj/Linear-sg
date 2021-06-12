@@ -17,7 +17,7 @@ opener.addheaders = [('User-Agent',
 urllib.request.install_opener(opener)
 
 # img loader
-def load_image(img_path, filename="temp.jpg"):
+def load_image(img_path, model_type, filename="temp.jpg"):
     print(img_path)
     print(filename)
     # try:
@@ -40,7 +40,11 @@ def load_image(img_path, filename="temp.jpg"):
     image = keras.preprocessing.image.img_to_array(image_PIL,
                                            data_format=None,
                                            dtype=None)
-    image = keras.preprocessing.image.smart_resize(image, (256, 256))
+    if model_type == "style":
+        image = keras.preprocessing.image.smart_resize(image, (256, 256))
+    elif model_type == "rec":
+        image = keras.preprocessing.image.smart_resize(image, (224, 224))
+
     image = tf.expand_dims(image, axis=0, name=None)
     # url = 'http://photographs.500px.com/kyle/09-09-201315-47-571378756077.jpg'
     # file, headers = urllib.urlretrieve(url)
@@ -48,14 +52,14 @@ def load_image(img_path, filename="temp.jpg"):
     # os.remove(file)
     return image
 
-def stack_img(img_list):
+def stack_img(img_list, model_type):
     '''
     img_list = {filename: img_path}
     '''
     stacked =[]
     for i in img_list:
         for key in i:
-            stacked.append(load_image(i[key], key))
+            stacked.append(load_image(i[key], model_type, key))
     input_y = np.vstack(stacked)
     return input_y
 

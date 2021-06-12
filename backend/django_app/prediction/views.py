@@ -10,7 +10,7 @@ from prediction.apps import PredictionConfig
 import pandas as pd
 import os
 from prediction.mlmodel import inference
-
+from prediction.mlmodel.recommender import ImageRecommender
 # predefine class names
 class_names = ['Contemporary',
  'Eclectic',
@@ -23,6 +23,10 @@ class_names = ['Contemporary',
  'Traditional',
  'Transitional',
  'Vintage']
+
+# DB_ROOT = 'D:\Linear\Linear Repo\Image Classifier\subset\'
+
+DB_ROOT = 'C:\\linear\\backend\\subset\\subset\\'
 
 # Create your views here.
 # Class based view to predict based on IRIS model
@@ -61,9 +65,6 @@ class Style_Model_Predict(APIView):
         # data in form of list of dict, 'src': link
         data = request.data
 
-        # Styles
-        loaded_style_mlmodel = PredictionConfig.style_mlmodel
-
         print(data)
         img_list = []
         for i in range(len(data)):
@@ -72,7 +73,8 @@ class Style_Model_Predict(APIView):
                 {filename: data[i]['src']}
             )
         # find stacked vector from multiple images
-        input_y = inference.stack_img(img_list)
+        input_y = inference.stack_img(img_list, "style")
+
         #prediction
         loaded_style_mlmodel = PredictionConfig.style_mlmodel
         # prediction = inference.predict_image(input_y, loaded_style_mlmodel)
@@ -89,4 +91,42 @@ class Style_Model_Predict(APIView):
         response_dict = {"Predicted Iris Species":output,
                          "Results": output,
                          "sorted_cats": sorted_cats}
+        return Response(response_dict, status=200)
+
+class Rec_Model_Predict(APIView):
+
+    # # Check if authenticated
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
+    print("Recommending Similar Pics")
+
+    def post(self, request, format=None):
+        data = request.data
+
+        # Styles
+        loaded_Effnet_model = PredictionConfig.Effnet_model
+        
+        print(data)
+        # Get list of image links
+        # img_list = data['data']
+        img_list = []
+
+        for i in range(len(data)):
+            filename = f"00{i}.jpg"
+            img_list.append(
+                {filename: data[i]}
+            )
+        nb_closest_images = 8
+        IR = ImageRecommender(loaded_Effnet_model, DB_ROOT)
+        IR.load_db_dict()
+        # find stacked vector from multiple images, put in the type
+        # re
+        input_y = inference.stack_img(img_list, "rec")
+
+        # extract feature and find closest images
+        # Return just the img index
+        closest_imgs = IR.find_similar(input_y, nb_closest_images)
+        response_dict = {"Results": closest_imgs
+        }
+        print(response_dict)
         return Response(response_dict, status=200)
