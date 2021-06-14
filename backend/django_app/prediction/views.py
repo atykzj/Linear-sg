@@ -10,7 +10,7 @@ from prediction.apps import PredictionConfig
 import pandas as pd
 import os
 from prediction.mlmodel import inference
-from prediction.mlmodel.recommender import ImageRecommender
+from prediction.recommender import ImageRecommender
 # predefine class names
 class_names = ['Contemporary',
  'Eclectic',
@@ -24,9 +24,7 @@ class_names = ['Contemporary',
  'Transitional',
  'Vintage']
 
-# DB_ROOT = 'D:\Linear\Linear Repo\Image Classifier\subset\'
-
-DB_ROOT = 'C:\\linear\\backend\\subset\\subset\\'
+DB_ROOT = 'https://storage.googleapis.com/linear-static-assets/subset/'
 
 # Create your views here.
 # Class based view to predict based on IRIS model
@@ -116,6 +114,7 @@ class Rec_Model_Predict(APIView):
             img_list.append(
                 {filename: data[i]}
             )
+            
         nb_closest_images = 8
         IR = ImageRecommender(loaded_Effnet_model, DB_ROOT)
         IR.load_db_dict()
