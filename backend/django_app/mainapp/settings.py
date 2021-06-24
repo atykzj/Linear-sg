@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Build paths inside the project like this: BASE_DIR / 'subdir'.a
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 
@@ -22,11 +22,14 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '4do3athn$^tqhf(fd951@$fi-#tmlx5u166lsbo1x#afqqhrfy'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# # SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG = False
+#
+# ALLOWED_HOSTS = ['linear-315005.as.r.appspot.com', 'http://0.0.0.0:8081']
+
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -44,7 +47,6 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'prediction',
-    'users',
 
 ]
 
@@ -76,6 +78,17 @@ TEMPLATES = [
         },
     },
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_CLASSES': [
+        'prediction.throttles.LimitedRateThrottle',
+        'prediction.throttles.BurstRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'limited': '3/min',
+        'burst': '10/min'
+    }
+}
 
 WSGI_APPLICATION = 'mainapp.wsgi.application'
 

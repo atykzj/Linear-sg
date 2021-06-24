@@ -1,28 +1,41 @@
 from django.apps import AppConfig
-import pandas as pd
-from joblib import load
-from tensorflow import keras
-import tensorflow as tf
-import os
 import keras
 from tensorflow.keras.applications import EfficientNetB0
+
+import os
 
 # SCIKIT LEARN DOCS FOR RUNNING JOBLIB
 # https://scikit-learn.org/stable/modules/model_persistence.html
 
+try:
+    style_mlmodel
+    Effnet_model
+
+except NameError:
+    style_mlmodel = None
+    Effnet_model = None
+
+
 #disable GPU
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
 class PredictionConfig(AppConfig):
+    CHECK_LOAD_ONCE = False
     name = 'prediction'
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    MLMODEL_FOLDER = os.path.join(BASE_DIR, 'prediction/mlmodel/')
-    # Iris
-    MLMODEL_FILE = os.path.join(MLMODEL_FOLDER, "IRISRandomForestClassifier.joblib")
-    mlmodel = load(MLMODEL_FILE)
-    # Style
-    STYLE_MLMODEL_FILE = os.path.join(MLMODEL_FOLDER, 'styleclassifier.h5')
-    style_mlmodel = keras.models.load_model(STYLE_MLMODEL_FILE)
+    MLMODEL_FOLDER = os.path.join(BASE_DIR, 'prediction/models/')
+    # # Iris
+    # MLMODEL_FILE = os.path.join(MLMODEL_FOLDER, "IRISRandomForestClassifier.joblib")
+    # mlmodel = load(MLMODEL_FILE)
 
-    # init model from online
-    Effnet_model = EfficientNetB0(include_top=True, weights="imagenet", classes=1000, classifier_activation="softmax")
+    # Style
+    print(f"This is base dir {BASE_DIR}")
+    STYLE_MLMODEL_FILE = os.path.join(MLMODEL_FOLDER, 'styleclassifier.h5')
+    if style_mlmodel == None:
+        try:
+            style_mlmodel = keras.models.load_model(STYLE_MLMODEL_FILE)
+        except OSError:
+            style_mlmodel = keras.models.load_model('models/styleclassifier.h5')
+
+    # init
+    if Effnet_model == None:
+        Effnet_model = EfficientNetB0(include_top=True, weights="imagenet", classes=1000, classifier_activation="softmax")

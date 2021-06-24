@@ -1,5 +1,8 @@
 # LINEAR
 
+# Changelog Notes
+Rename `mlmodels` folder to `models`.
+
 LINEAR working fullstack with django, react. All codes work locally only.
 Calling prediction will save inference results to
 ```sh
