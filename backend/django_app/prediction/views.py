@@ -36,10 +36,11 @@ class_names = ['Contemporary',
  'Transitional',
  'Vintage']
 
-#DB_ROOT = 'D:/Linear/Linear Repo/Image Classifier/subset/'
+# Load db from models folder
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# DB_ROOT = os.path.join(BASE_DIR, 'prediction/models/')
-DB_ROOT = 'https://storage.googleapis.com/linear-static-assets/subset/'
+DB_ROOT = os.path.join(BASE_DIR, 'prediction/models/')
+# base_dir for cloud bucket
+CLOUD_DIR = 'https://storage.googleapis.com/linear-static-assets/subset/'
 
 
 # Create your views here.
@@ -160,14 +161,11 @@ class Rec_Style_Model_Predict(APIView):
 
         # Get request data
         start = timer()
-
         # data in form of list of dict, 'src': link
         if "data" in request.data:
             data = request.data['data']
         else:
             data = request.data
-
-        print(data)
         img_list = []
 
         for i in range(len(data)):
@@ -176,10 +174,8 @@ class Rec_Style_Model_Predict(APIView):
             img_list.append(
                 {filename: data[i]}
             )
-        print(img_list)
         end = timer()
         print('Get request data：' + str(timedelta(seconds=end-start)))
-
 
         # Style name
         # find stacked vector from multiple images
@@ -191,16 +187,13 @@ class Rec_Style_Model_Predict(APIView):
         prediction_stylename = loaded_style_mlmodel.predict(input_y_style)
         predictions_stylename = pd.DataFrame(prediction_stylename, columns=class_names)
         sorted_cats_stylename = predictions_stylename.sum().sort_values(ascending=False).index
-        output_stylename = 'Your prefered style is ' + sorted_cats_stylename[0:3][0] + ' with a mix of ' + sorted_cats_stylename[0:3][1] + ' and ' +\
-                 sorted_cats_stylename[0:3][2]
-
         end = timer()
         print('Style Classifier：' + str(timedelta(seconds=end-start)))
 
         # List of images
         input_y_rec = inference.stack_img(img_list, "rec")
         # extract features
-        IR = ImageRecommender(loaded_Effnet_model, DB_ROOT)
+        IR = ImageRecommender(loaded_Effnet_model, DB_ROOT, CLOUD_DIR)
         # find similar
 
         start = timer()
@@ -208,22 +201,18 @@ class Rec_Style_Model_Predict(APIView):
         end = timer()
         print('Load db: ' + str(timedelta(seconds=end-start)))   
         
-        
         start = timer()
         nb_closest_images = 6
         closest_imgs = IR.find_similar(input_y_rec, nb_closest_images)
         response_dict = {
-            "Style": output_stylename,
-            "sorted_cats": sorted_cats_stylename,
-            "Images": closest_imgs,
-
+            "Category": sorted_cats_stylename,
+            "Image": closest_imgs,
                          }
         end = timer()       
         print('Recommender: ' + str(timedelta(seconds=end-start)))          
-
         end_all =  timer()
-
         print('Total time: ' + str(timedelta(seconds=end_all-start_all)))   
+        print(response_dict)
 
         return Response(response_dict, status=200)
 

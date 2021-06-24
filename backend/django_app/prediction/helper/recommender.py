@@ -10,14 +10,13 @@ from urllib.request import urlopen
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"   
 import tensorflow as tf
 from sklearn.metrics.pairwise import cosine_similarity
-from tensorflow.keras.preprocessing.image import load_img,img_to_array
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications.imagenet_utils import preprocess_input
 
 
 class ImageRecommender : 
     
-    def __init__(self, model, db_root): 
+    def __init__(self, model, db_root, cloud_dir): 
         #init model
         self.model = model
         #since ouput.shape return object dimension just eval it to get integer ...
@@ -26,29 +25,29 @@ class ImageRecommender :
         # remove the last layers in order to get features instead of predictions
         self.image_features_extractor = Model(inputs=self.model.input, outputs=self.model.layers[-2].output)
         self.db_root = db_root
+        self.cloud_dir = cloud_dir
         self.file_list = glob(self.db_root + '*.jpg')
 
+
+
     def load_db_dict(self):
-
-        BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        js_root = os.path.join(BASE, 'models/')
-
-        if 'https' in js_root:
+        if 'https' in self.db_root:
             print('loading dict from url')
-            response = urlopen(js_root + 'dict.json')
+            response = urlopen(self.db_root + 'dict.json')
             data = json.loads(response.read())
 
         else:
             print('loading dict locally')
-            with open(js_root + 'dict.json', 'r') as fp:
+            with open(self.db_root + 'dict.json', 'r') as fp:
                 data = json.load(fp)
 
         keys = list(data.keys())
-        self.db_subset = [js_root + i for i in keys]
+        self.db_subset = [self.cloud_dir + i for i in keys]
         self.db_features = list(data.values())
 
     def extract_db(self):
-        """get all jpgs in pic db and returns a dictionary of img name and extracted features
+        """get all jpgs in pic db and returns a dictionary of img name and extracted features,
+            only for extracting images in database, not for inference
         """
         print('converting to tensor')
         db_pics = self.PicstoTensor(self.file_list)
