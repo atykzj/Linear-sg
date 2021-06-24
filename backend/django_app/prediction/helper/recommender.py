@@ -29,18 +29,22 @@ class ImageRecommender :
         self.file_list = glob(self.db_root + '*.jpg')
 
     def load_db_dict(self):
-        if 'https' in self.db_root:
+
+        BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        js_root = os.path.join(BASE, 'models/')
+
+        if 'https' in js_root:
             print('loading dict from url')
-            response = urlopen(self.db_root + 'dict.json')
+            response = urlopen(js_root + 'dict.json')
             data = json.loads(response.read())
 
         else:
             print('loading dict locally')
-            with open(self.db_root + 'dict.json', 'r') as fp:
+            with open(js_root + 'dict.json', 'r') as fp:
                 data = json.load(fp)
 
         keys = list(data.keys())
-        self.db_subset = [self.db_root + i for i in keys]
+        self.db_subset = [js_root + i for i in keys]
         self.db_features = list(data.values())
 
     def extract_db(self):

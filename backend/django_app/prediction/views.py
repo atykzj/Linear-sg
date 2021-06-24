@@ -38,8 +38,8 @@ class_names = ['Contemporary',
 
 #DB_ROOT = 'D:/Linear/Linear Repo/Image Classifier/subset/'
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_ROOT = os.path.join(BASE_DIR, 'prediction/models/')
-# DB_ROOT = 'https://storage.googleapis.com/linear-static-assets/subset/'
+# DB_ROOT = os.path.join(BASE_DIR, 'prediction/models/')
+DB_ROOT = 'https://storage.googleapis.com/linear-static-assets/subset/'
 
 
 # Create your views here.
@@ -160,7 +160,13 @@ class Rec_Style_Model_Predict(APIView):
 
         # Get request data
         start = timer()
-        data = request.data
+
+        # data in form of list of dict, 'src': link
+        if "data" in request.data:
+            data = request.data['data']
+        else:
+            data = request.data
+
         print(data)
         img_list = []
 
@@ -184,7 +190,10 @@ class Rec_Style_Model_Predict(APIView):
         # run style predict
         prediction_stylename = loaded_style_mlmodel.predict(input_y_style)
         predictions_stylename = pd.DataFrame(prediction_stylename, columns=class_names)
-        sorted_cats_stylename  = predictions_stylename.sum().sort_values(ascending=False).index
+        sorted_cats_stylename = predictions_stylename.sum().sort_values(ascending=False).index
+        output_stylename = 'Your prefered style is ' + sorted_cats_stylename[0:3][0] + ' with a mix of ' + sorted_cats_stylename[0:3][1] + ' and ' +\
+                 sorted_cats_stylename[0:3][2]
+
         end = timer()
         print('Style Classifier：' + str(timedelta(seconds=end-start)))
 
@@ -204,8 +213,10 @@ class Rec_Style_Model_Predict(APIView):
         nb_closest_images = 6
         closest_imgs = IR.find_similar(input_y_rec, nb_closest_images)
         response_dict = {
+            "Style": output_stylename,
             "sorted_cats": sorted_cats_stylename,
-            "Images": closest_imgs
+            "Images": closest_imgs,
+
                          }
         end = timer()       
         print('Recommender: ' + str(timedelta(seconds=end-start)))          
