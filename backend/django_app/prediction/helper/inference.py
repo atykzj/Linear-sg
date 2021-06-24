@@ -24,40 +24,29 @@ urllib.request.install_opener(opener)
 def load_image(img_path, model_type, filename="temp.jpg"):
     TEMPDIR = tempfile.gettempdir()
     # Ensure that the file is saved to temp
-    filename = TEMPDIR + '/' +filename
+    filename = TEMPDIR + '/' + filename
 
-    # try:
-    #     # normal retrieval
-    #     image_raw = urllib.request.urlopen(img_path).read()
-    # except:
-    # fake visitor to overcome denied request
-    # Adding information about user agent
-    # opener = urllib.request.build_opener()
-    # opener.addheaders = [('User-Agent',
-    #                       'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
-    # urllib.request.install_opener(opener)
-
-    # calling urlretrieve function to get resource
     try:
         urllib.request.urlretrieve(img_path, filename)
     except OSError:
         urllib.request.urlretrieve(TEMPDIR + '/' + img_path, filename)
 
-    image_PIL = tf.keras.preprocessing.image.load_img(filename,
+    if model_type == "style":
+        image_PIL = tf.keras.preprocessing.image.load_img(filename,
                                                 grayscale=False, color_mode='rgb', target_size=(256,256),
                                                 interpolation='nearest')
+    
+    elif model_type == "rec":
+        image_PIL = tf.keras.preprocessing.image.load_img(filename,
+                                                grayscale=False, color_mode='rgb', target_size=(224,224),
+                                                interpolation='nearest')
+
     image = keras.preprocessing.image.img_to_array(image_PIL,
                                            data_format=None,
                                            dtype=None)
-    if model_type == "style":
-        image = keras.preprocessing.image.smart_resize(image, (256, 256))
-    elif model_type == "rec":
-        image = keras.preprocessing.image.smart_resize(image, (224, 224))
 
     image = tf.expand_dims(image, axis=0, name=None)
-    # url = 'http://photographs.500px.com/kyle/09-09-201315-47-571378756077.jpg'
-    # file, headers = urllib.urlretrieve(url)
-    # # do something
+
     os.remove(filename)
     return image
 
@@ -92,7 +81,6 @@ class_names = ['Contemporary',
  'Traditional',
  'Transitional',
  'Vintage']
-
 
 if __name__ == "__main__":
 

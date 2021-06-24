@@ -14,6 +14,11 @@ import os
 from prediction.helper import inference
 from prediction.helper.recommender import ImageRecommender
 
+from timeit import default_timer as timer
+from datetime import timedelta
+
+
+
 # Access temporary files
 import tempfile
 import glob
@@ -31,43 +36,11 @@ class_names = ['Contemporary',
  'Transitional',
  'Vintage']
 
-# DB_ROOT = 'D:\Linear\Linear Repo\Image Classifier\subset\'
+#DB_ROOT = 'D:/Linear/Linear Repo/Image Classifier/subset/'
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_ROOT = os.path.join(BASE_DIR, 'prediction/models/')
+# DB_ROOT = 'https://storage.googleapis.com/linear-static-assets/subset/'
 
-DB_ROOT = 'https://storage.googleapis.com/linear-static-assets/subset/'
-
-
-# FILE_UPLOAD_HANDLERS
-# Django store it in memory if the file is small (< 2 MB),
-# or store it as a temporary file on disk if it's large
-
-# Create your views here.
-# Class based view to predict based on IRIS model
-class IRIS_Model_Predict(APIView):
-
-    # # Check if authenticated
-    # authentication_classes = [TokenAuthentication]
-    # permission_classes = [IsAuthenticated]
-    # throttle_classes = [LimitedRateThrottle]
-    def post(self, request, format=None):
-
-    #     data = request.data
-    #     keys = []
-    #     values = []
-    #     for key in data:
-    #         keys.append(key)
-    #         values.append(data[key])
-    #     X = pd.Series(values).to_numpy().reshape(1, -1)
-    #     loaded_mlmodel = PredictionConfig.mlmodel
-    #     y_pred = loaded_mlmodel.predict(X)
-    #     y_pred = pd.Series(y_pred)
-    #     target_map = {0: 'setosa', 1: 'versicolor', 2: 'virginica'}
-    #     y_pred = y_pred.map(target_map).to_numpy()
-    #     response_dict = {"Predicted Iris Species": y_pred[0]}
-    #     return Response(response_dict, status=200)
-
-
-        response_dict = {"Predicted Iris Species": "Temp"}
-        return Response(response_dict, status=200)
 
 # Create your views here.
 # Class based view to predict based on IRIS model
@@ -175,18 +148,20 @@ class Rec_Style_Model_Predict(APIView):
     throttle_classes = [LimitedRateThrottle]
 
     def post(self, request, format=None):
-        print("Find Style name & list of similar images.")
+        start_all =  timer()
 
-        # Load Models
+
+        # Load Models   
+        start = timer()
         loaded_Effnet_model = PredictionConfig.Effnet_model
         loaded_style_mlmodel = PredictionConfig.style_mlmodel
+        end = timer()
+        print('loading model time： '+ str(timedelta(seconds=end-start)))
 
-        # Preprocess
-        if "data" in request.data:
-            data = request.data['data']
-        else:
-            data = request.data
-
+        # Get request data
+        start = timer()
+        data = request.data
+        print(data)
         img_list = []
 
         for i in range(len(data)):
@@ -195,32 +170,52 @@ class Rec_Style_Model_Predict(APIView):
             img_list.append(
                 {filename: data[i]}
             )
-        # Recommend 8 closest images
-        nb_closest_images = 8
+        print(img_list)
+        end = timer()
+        print('Get request data：' + str(timedelta(seconds=end-start)))
+
 
         # Style name
         # find stacked vector from multiple images
+
+        start = timer()
         input_y_style = inference.stack_img(img_list, "style")
+
+        # run style predict
         prediction_stylename = loaded_style_mlmodel.predict(input_y_style)
         predictions_stylename = pd.DataFrame(prediction_stylename, columns=class_names)
         sorted_cats_stylename  = predictions_stylename.sum().sort_values(ascending=False).index
-        output_stylename = 'Your prefered style is ' + sorted_cats_stylename[0:3][0] + ' with a mix of ' + sorted_cats_stylename[0:3][1] + ' and ' +\
-                 sorted_cats_stylename[0:3][2]
+        end = timer()
+        print('Style Classifier：' + str(timedelta(seconds=end-start)))
 
         # List of images
         input_y_rec = inference.stack_img(img_list, "rec")
+        # extract features
         IR = ImageRecommender(loaded_Effnet_model, DB_ROOT)
+        # find similar
+
+        start = timer()
         IR.load_db_dict()
-
+        end = timer()
+        print('Load db: ' + str(timedelta(seconds=end-start)))   
+        
+        
+        start = timer()
+        nb_closest_images = 6
         closest_imgs = IR.find_similar(input_y_rec, nb_closest_images)
-
-        # # clean up
-        TEMPDIR = tempfile.gettempdir()
-
         response_dict = {
-            "Style": output_stylename,
             "sorted_cats": sorted_cats_stylename,
             "Images": closest_imgs
                          }
-        print(response_dict)
+        end = timer()       
+        print('Recommender: ' + str(timedelta(seconds=end-start)))          
+
+        end_all =  timer()
+
+        print('Total time: ' + str(timedelta(seconds=end_all-start_all)))   
+
         return Response(response_dict, status=200)
+
+        
+
+
