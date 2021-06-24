@@ -69,21 +69,22 @@ def predict_image(input_y, model_path):
     prediction = model.predict(input_y)
     return prediction
 
-# predefine class names
-class_names = ['Contemporary',
- 'Eclectic',
- 'Industrial',
- 'Kitchen',
- 'Minimalistic',
- 'Modern',
- 'Retro',
- 'Scandinavian',
- 'Traditional',
- 'Transitional',
- 'Vintage']
+
 
 if __name__ == "__main__":
 
+    # predefine class names
+    class_names = ['Contemporary',
+    'Eclectic',
+    'Industrial',
+    'Kitchen',
+    'Minimalistic',
+    'Modern',
+    'Retro',
+    'Scandinavian',
+    'Traditional',
+    'Transitional',
+    'Vintage']
     #find stacked vector from multiple images
     input_y = stack_img(img_list)
 
