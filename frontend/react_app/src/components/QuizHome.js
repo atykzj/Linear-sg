@@ -1,68 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Home from "./Home";
-import quizQuestions from './Questions/api/quizQuestions';
 import Quiz from './Questions/Quiz';
 import StyleQuiz from './Questions/StyleQuiz';
 import Result from './Result';
-import {Button, Container, Grid} from "@material-ui/core";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import {makeStyles} from "@material-ui/core/styles";
-import {Link} from "react-router-dom";
+
+import { Typography, AppBar, Button, Card, CardActions, CardContent, CardMedia, CssBaseline, Grid, Toolbar, Container } from '@material-ui/core';
+
+import quizQuestions from './Questions/api/quizQuestions';
+import PHOTOS from './Questions/api/photos';
+import QUIZPHOTOS from './Questions/api/quizPhotos';
+import * as settings from "../settings";
+import axios from "axios";
+
+import useStyles from "../styles";
+
+
+import ScopedCssBaseline from '@material-ui/core/ScopedCssBaseline';
+
+import Masonry from "react-masonry-component";
+// Masory Options
+const masonryOptions = {
+  fitWidth: false,
+  columnWidth: 300,
+  gutter: 30,
+  itemSelector: ".photo-item",
+};
 
 
 function QuizHome(props) {
-// const [state, setState] = useState({
-//      order:'',
-//      paid: false,
-//      submitting: false,
-//      loading: false,
-//      data: initialValues
-//   });
-//   // example of setting this kind of state
-//   const sampleChanger = () => {
-//      setState({...state, paid: true, order: 'sample'});
-//   }
-    // Set state for quiz
-    const [counter, setCounter] = useState(0)
-    const [questionId, setQuestionId] = useState(1)
+    const classes = useStyles();
+
+    const [counter, setCounter] = useState(5)
+    const [counterEnd, setCounterEnd] = useState(9)
+    const [questionId, setQuestionId] = useState(0)
     const [question, setQuestion] = useState(quizQuestions[0].question)
     const [answer, setAnswer] = useState('')
     const [answersCount, setAnswersCount] = useState({})
     const [result, setResult] = useState('')
+    const [check, setCheck] = useState(false)
 
+    const [answerList, setAnswerList] = useState([])
+    // const answerList = []
     const [styles, setStyles] = useState('')
 
-    // // Similar to componentDidMount and componentDidUpdate:
-    // React.useEffect(() => {
-    // props.setAuthenticatedIfRequired();
-    // }, []);
-    // Set of questions
     const shuffledAnswerOptions = quizQuestions.map((question) => shuffleArray(question.answers));
     const [answerOptions, setAnswerOptions] = useState(shuffledAnswerOptions[0])
-    // const [, set] =
-    // const [, set] =
-    // const [, set] =
-    // const [, set] =
 
-    //
-    // React.useEffect(() => {
-    //
-    //
-    //   this.setState({
-    //     question: quizQuestions[0].question,
-    //     answerOptions: shuffledAnswerOptions[0]
-    //   });
-    //     props.setAuthenticatedIfRequired();
-    // }, []);
+    const shuffledPhotos = PHOTOS.map((question) => shuffleArray(PHOTOS));
+    const [PhotoList, setPhotoList] = useState(
+            PHOTOS.slice(0,4))
+
+    const [prediction, setPrediction] = React.useState(null)
 
 
-    // // Import images regardless of file name
-    // function importAll(r) {
-    //   return r.keys().map(r);
-    // }
-    //
-    // const images = importAll(require.context('./Questions/assets', false, /\.(png|jpe?g|svg)$/));
-    // console.log(images);
+    const db = "./Questions/assets/subset/subset/";
+
+
 
     // function to shuffle answers
     function shuffleArray(array) {
@@ -84,51 +77,96 @@ function QuizHome(props) {
       return array;
     };
 
-
     function setNextQuestion() {
-        const counter1 = counter + 1;
-        const questionId1 = questionId + 1;
+        const counter1 = counter + 4;
+        const counter2 = counterEnd + 4;
+        const questionId1 = questionId+1;
         setCounter(counter1);
+        setCounterEnd(counter2);
         setQuestionId(questionId1);
-        setQuestion(quizQuestions[counter1].question);
-        setAnswerOptions(quizQuestions[counter1].answers);
+        // setQuestion(quizQuestions[counter1].question);
+        // setAnswerOptions(quizQuestions[counter1].answers);
+        setPhotoList(PHOTOS.slice(counter1,counter2));
         setAnswer('');
-
-        // this.setState({
-        //   counter: counter,
-        //   questionId: questionId,
-        //   question: quizQuestions[counter].question,
-        //   answerOptions: quizQuestions[counter].answers,
-        //   answer: ''
-        // });
     }
 
-
     function handleAnswerSelected(event) {
-      setUserAnswer(event.currentTarget.value);
-
-      if (questionId < quizQuestions.length) {
+      // setUserAnswer(event.currentTarget.value);
+      // setUserAnswer(event)
+      setUserAnswer(event)
+      if (questionId < 4) {
           setTimeout(() => setNextQuestion(), 300);
         } else {
-          setTimeout(() => setResults(getResults()), 300);
+          setStyles(answerList)
+          // setTimeout(() => setResults(getResults()), 300);
+          // setTimeout(() => setResults(answerList), 300);
           // do nothing for now
         }
     };
 
+    // useEffect(async() => {
+    //     function handlePredict(_callback) {
+    //     //Axios variables required to call the predict API
+    //     // let headers = { 'Authorization': `Token ${props.token}` };
+    //     let url = settings.API_SERVER + '/api/recommend/';
+    //     // alert(url)
+    //     // let url = 'http://127.0.0.1:8000/api/recommend/';
+    //
+    //     let method = 'post';
+    //     let config = { method, url, data: answerList };
+    //     // alert(JSON.stringify(config))
+    //
+    //     //Axios predict API call
+    //     axios(config).then(
+    //         res => {
+    //             //
+    //             // alert(JSON.stringify(res.data["Results"]));
+    //             // const x = res.data["Results"].map(item => {
+    //             //     return require(item)
+    //             // });
+    //             setPrediction(res.data["Results"]);
+    //         }).catch(
+    //             error => {alert(error)})
+    //      _callback();
+    //     }
+    // }, []);
+     function handlePredict(_callback) {
+        //Axios variables required to call the predict API
+        // let headers = { 'Authorization': `Token ${props.token}` };
+        let url = settings.API_SERVER + '/api/recommend/';
+        // alert(url)
+        // let url = 'http://127.0.0.1:8000/api/recommend/';
+        let method = 'post';
+        let config = { method, url, data: answerList };
+        // alert(JSON.stringify(config))
+
+        //Axios predict API call
+        axios(config).then(
+            res => {
+                setPrediction(res.data["Results"]);
+            }).catch(
+                error => {alert(error)})
+         _callback();
+    }
+
+
+
+    function checkRes() {
+
+    }
 
     function setUserAnswer(answer) {
-        setAnswersCount(
-            {...answersCount,
-                [answer]:(answersCount[answer] || 0) + 1
+        if (answer != '') {
+            setAnswersCount(
+                {
+                    ...answersCount,
+                    [answer]: (answersCount[answer] || 0) + 1
                 });
-        setAnswer(answer);
-        // this.setState((state, props) => ({
-        //   answersCount: {
-        //     ...state.answersCount,
-        //     [answer]: (state.answersCount[answer] || 0) + 1
-        //   },
-        //   answer: answer
-        // }));
+            setAnswer(answer);
+
+            answerList.push(answer)
+            setAnswerList(answerList)
+        }
     }
 
     function getResults() {
@@ -140,7 +178,7 @@ function QuizHome(props) {
     }
 
     function setResults(result) {
-        setResult(result)
+        setResult(result);
         // if (result.length === 1) {
         //     setResult(result[0])
         // } else {
@@ -159,54 +197,62 @@ function QuizHome(props) {
                 questionTotal={quizQuestions.length}
                 onAnswerSelected={handleAnswerSelected}
                 />
-                {/*<Link to="/result" >*/}
-                {/*    <Button variant="contained" color="primary">*/}
-                {/*        See Results*/}
-                {/*    </Button>*/}
-                {/*</Link>*/}
             </div>
         );
     }
     function renderStyleQuiz() {
         return (
+
+        <fade>
             <div>
                 <StyleQuiz
+                PhotoList={PhotoList}
                 answer={answer}
                 answerOptions={answerOptions}
                 questionId={questionId}
                 question={question}
                 questionTotal={quizQuestions.length}
                 onAnswerSelected={handleAnswerSelected}
+                al = {answerList}
                 />
-                {/*<Link to="/result" >*/}
-                {/*    <Button variant="contained" color="primary">*/}
-                {/*        See Results*/}
-                {/*    </Button>*/}
-                {/*</Link>*/}
             </div>
+        </fade>
         );
     }
 
-
     function renderResult() {
-        return <Result quizResult={result} />;
+        if (check == false) {
+
+            handlePredict(function () {
+                console.log('ensure done');
+            })
+            // }).catch(err => alert(err));
+            // handlePredict();
+            setCheck(true);
+        }
+        // await checkAPI();
+        // alert(JSON.stringify(answerList))
+        console.log("async await returning ")
+        return <Result quizResult={"HI"} prediction={prediction} />;
     }
 
     return (
         <React.Fragment>
-            <CssBaseline />
+            <ScopedCssBaseline />
             <Container>
-
                 <div>
-                    <h2>Design Preferences</h2>
                     {/*{renderStyleQuiz()}*/}
-                    {styles ? renderQuiz() : renderStyleQuiz()}
-                    {result ? renderResult() : renderQuiz()}
+                    {/*{styles ? renderQuiz() : renderStyleQuiz()}*/}
+                    {/*<img src={require('./Questions/assets/subset/subset/1.jpg')} />*/}
+                    {styles ? renderResult() : renderStyleQuiz()}
+                    {/*{var ren = getRender()}*/}
+
+                    {/*{result ? renderResult() : renderQuiz()}*/}
                     {/*{renderQuiz()}*/}
                 </div>
             </Container>
         </React.Fragment>
     )
 };
-
 export default QuizHome
+

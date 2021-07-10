@@ -216,6 +216,12 @@ class Rec_Style_Model_Predict(APIView):
 
         return Response(response_dict, status=200)
 
-        
+# Class status
+class Status_Check(APIView):
+    def post(self, request=None, format=None):
 
+        response_dict = {
+            "Status": "Instance running.",
+        }
+        return Response(response_dict, status=200)
 

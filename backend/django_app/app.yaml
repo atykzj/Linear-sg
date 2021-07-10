@@ -25,9 +25,9 @@ instance_class: F4_1G
 
 automatic_scaling:
   min_instances: 1
-  max_instances: 10
+  max_instances: 20
   min_idle_instances: 1
-  max_idle_instances: 1
+  max_idle_instances: 5
   max_pending_latency: automatic
   target_cpu_utilization: 0.95
 

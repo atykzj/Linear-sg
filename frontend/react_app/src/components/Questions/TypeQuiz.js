@@ -7,7 +7,7 @@ import AnswerOption from './AnswerOption';
 import {makeStyles} from "@material-ui/core/styles";
 
 
-import "./StyleQuiz.css";
+import "../assets/StyleQuiz.css";
 import PHOTOS from './api/photos';
 import Masonry from "react-masonry-component";
 import ImagePicker from 'react-image-picker'

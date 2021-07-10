@@ -5,7 +5,6 @@ import { CSSTransitionGroup } from 'react-transition-group';
 import QuestionCount from './QuestionCount';
 import AnswerOption from './AnswerOption';
 import {makeStyles} from "@material-ui/core/styles";
-
 // ########################################################
 // Material UI inline styles
 // ########################################################
