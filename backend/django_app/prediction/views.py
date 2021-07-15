@@ -17,7 +17,7 @@ from prediction.helper.recommender import ImageRecommender
 from timeit import default_timer as timer
 from datetime import timedelta
 
-
+import numpy as np
 
 # Access temporary files
 import tempfile
@@ -225,3 +225,34 @@ class Status_Check(APIView):
         }
         return Response(response_dict, status=200)
 
+
+# Class status
+class Color(APIView):
+    def post(self, request=None, format=None):
+
+        start_all =  timer()
+
+        # data in form of list of dict, 'src': link
+        if "data" in request.data:
+            data = request.data['data']
+        else:
+            data = request.data
+        rgb_list, hex_list = [], []
+
+        # Define a function for the mapping
+        rgb2hex = lambda r, g, b: '#%02x%02x%02x' % (r, g, b)
+
+        for i in range(len(data)):
+            temp_color = inference.faiss_kmeans(data[i])
+            B = (temp_color*255).astype(int)  # convert to int
+            rgb_list.append(B)
+            hex_list.append(
+                [rgb2hex(*B[i, :]) for i in range(B.shape[0])]
+            )
+
+
+        response_dict = {
+            "rgb": rgb_list,
+            "hex": hex_list
+        }
+        return Response(response_dict, status=200)

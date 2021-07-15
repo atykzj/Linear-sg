@@ -6,4 +6,5 @@ urlpatterns = [
     path('recommend/', views.Rec_Model_Predict().as_view(), name = 'api_predict'),
     path('style/', views.Rec_Style_Model_Predict().as_view(), name = 'api_predict'),
     path('status/', views.Status_Check().as_view(), name = 'api_predict'),
+    path('color/', views.Color().as_view(), name='api_predict'),
 ]

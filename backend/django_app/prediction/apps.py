@@ -10,6 +10,7 @@ import os
 try:
     style_mlmodel
     Effnet_model
+
 except NameError:
     style_mlmodel = None
     Effnet_model = None

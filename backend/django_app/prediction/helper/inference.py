@@ -3,7 +3,9 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 import pandas as pd
-import os 
+import os
+from typing import Union, Callable
+
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 
 from io import BytesIO
@@ -11,6 +13,10 @@ import urllib
 
 # Access temporary files
 import tempfile
+
+# Kmeans Color Palette
+import faiss
+from skimage import color
 
 
 # fake visitor to overcome denied request
@@ -69,7 +75,39 @@ def predict_image(input_y, model_path):
     prediction = model.predict(input_y)
     return prediction
 
+# Img
+def faiss_kmeans(img_path, filename="temp.jpg"):
+    TEMPDIR = tempfile.gettempdir()
+    # Ensure that the file is saved to temp
+    filename = TEMPDIR + '/' + filename
 
+    try:
+        urllib.request.urlretrieve(img_path, filename)
+    except OSError:
+        urllib.request.urlretrieve(TEMPDIR + '/' + img_path, filename)
+
+    with open(filename,"rb") as f:
+        img = np.array(Image.open(f))
+    # img = tf.keras.preprocessing.image.load_img(filename,
+    #                                         grayscale=False, color_mode='rgb', target_size=(255,255),
+    #                                         interpolation='nearest')
+
+    rgb_pixels = img.reshape((-1, 3)).astype("float32") / 255
+
+    # Convert RGB to HSV
+    hsv_pixels = color.rgb2hsv(rgb_pixels)
+
+    kmeans = faiss.Kmeans(d=hsv_pixels.shape[1],
+                                       k=5)
+    kmeans.train(hsv_pixels.astype(np.float32))
+    cluster_centers_ = kmeans.centroids
+
+    # Sort
+    faiss_hsv_centers = np.sort(cluster_centers_, axis=0)
+
+    faiss_rgb_centers = color.hsv2rgb(faiss_hsv_centers)
+
+    return faiss_rgb_centers
 
 if __name__ == "__main__":
 
