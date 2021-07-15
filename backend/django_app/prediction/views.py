@@ -6,22 +6,19 @@ from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from .throttles import LimitedRateThrottle, BurstRateThrottle
 
-from prediction.apps import PredictionConfig
-import pandas as pd
 import os
+import pandas as pd
+
+from .throttles import LimitedRateThrottle, BurstRateThrottle
+from prediction.apps import PredictionConfig
 from prediction.helper import inference
 from prediction.helper.recommender import ImageRecommender
 from tensorflow.keras.models import Model
 from timeit import default_timer as timer
 from datetime import timedelta
 
-import numpy as np
-
-# Access temporary files
-import tempfile
-import glob
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 # predefine class names
 class_names = ['Contemporary',
@@ -56,22 +53,15 @@ class Rec_Style_Model_Predict(APIView):
     throttle_classes = [LimitedRateThrottle]
 
     def post(self, request, format=None):
-        start_all =  timer()
-
+        
         # Load Models   
         start = timer()
         mlmodel = PredictionConfig.mlmodel
-        end = timer()
-        print('loading model time： '+ str(timedelta(seconds=end-start)))
-
+        rec_model = Model(inputs=mlmodel.input, outputs=mlmodel.layers[-2].output)
         # Get request data
-        start = timer()
         img_list = request.data
-        end = timer()
-        print('Get request data：' + str(timedelta(seconds=end-start)))
-
+ 
         # Predict Classes
-        start = timer()
         input_y = inference.stack_img(img_list)
         prediction_stylename = mlmodel.predict(input_y)
         predictions_stylename = pd.DataFrame(prediction_stylename, columns=class_names)
@@ -79,30 +69,24 @@ class Rec_Style_Model_Predict(APIView):
         end = timer()
         print('Style Classifier：' + str(timedelta(seconds=end-start)))
 
-        ##—————————————————————————————————————————————————————————————————————————————————————————————————————————###
-        
-        # remove top layer and load dict
-        start = timer()
-        rec_model = Model(inputs=mlmodel.input, outputs=mlmodel.layers[-2].output)
+        # Image and Palette Recommender
+        start =  timer()
         IR = ImageRecommender(rec_model, DB_ROOT, CLOUD_DIR)
         IR.load_db_dict('render.json')
-        end = timer()
-        print('Load db: ' + str(timedelta(seconds=end-start)))  
-
-        start = timer()
-        closest_imgs = IR.find_similar(input_y)
-        
+        closest_style = IR.find_similar(input_y)
+    
+        PR = ImageRecommender(rec_model, DB_ROOT, CLOUD_DIR2)
+        PR.load_db_dict('palette.json')
+        closest_palette = PR.find_similar(input_y)
+    
         response_dict = {
             "Category": sorted_cats_stylename,
-            "Image": closest_imgs,
+            "Image": closest_style,
+            "Palette" : closest_palette
                          }
         end = timer()       
 
         print('Recommender: ' + str(timedelta(seconds=end-start)))          
-        end_all =  timer()
-        print('Total time: ' + str(timedelta(seconds=end_all-start_all)))   
-        print(response_dict)
-
         return Response(response_dict, status=200)
 
 # Class status

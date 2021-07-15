@@ -28,17 +28,16 @@ class ImageRecommender :
         self.file_list = glob(self.db_root + '*.jpg')
         self.image_size = (224,224)
         self.extractor_model = model
-        self.load_db_dict()
-
-    def load_db_dict(self):
+        
+    def load_db_dict(self, db_name='dict.json'):
         if 'https' in self.db_root:
             print('loading dict from url')
-            response = urlopen(self.db_root + 'dict.json')
+            response = urlopen(self.db_root + db_name)
             data = json.loads(response.read())
 
         else:
             print('loading dict locally')
-            with open(self.db_root + 'dict.json', 'r') as fp:
+            with open(self.db_root + db_name, 'r') as fp:
                 data = json.load(fp)
 
         keys = list(data.keys())
