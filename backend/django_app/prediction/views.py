@@ -60,7 +60,12 @@ class Rec_Style_Model_Predict(APIView):
         rec_model = Model(inputs=mlmodel.input, outputs=mlmodel.layers[-2].output)
         # Get request data
         img_list = request.data
- 
+
+        if "data" in request.data:
+            img_list = request.data['data']
+        else:
+            img_list = request.data
+
         # Predict Classes
         input_y = inference.stack_img(img_list)
         prediction_stylename = mlmodel.predict(input_y)
