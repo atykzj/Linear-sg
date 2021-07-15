@@ -58,8 +58,6 @@ class Rec_Style_Model_Predict(APIView):
         start = timer()
         mlmodel = PredictionConfig.mlmodel
         rec_model = Model(inputs=mlmodel.input, outputs=mlmodel.layers[-2].output)
-        # Get request data
-        img_list = request.data
 
         if "data" in request.data:
             img_list = request.data['data']
@@ -67,7 +65,8 @@ class Rec_Style_Model_Predict(APIView):
             img_list = request.data
 
         # Predict Classes
-        input_y = inference.stack_img(img_list)
+        # Stack_img and get kmeans centroids
+        input_y, rgb_list, hex_list = inference.stack_img(img_list)
         prediction_stylename = mlmodel.predict(input_y)
         predictions_stylename = pd.DataFrame(prediction_stylename, columns=class_names)
         sorted_cats_stylename = predictions_stylename.sum().sort_values(ascending=False).index
@@ -87,7 +86,9 @@ class Rec_Style_Model_Predict(APIView):
         response_dict = {
             "Category": sorted_cats_stylename,
             "Image": closest_style,
-            "Palette" : closest_palette
+            "Palette": closest_palette,
+            "rgb": rgb_list,
+            "hex": hex_list
                          }
         end = timer()       
 

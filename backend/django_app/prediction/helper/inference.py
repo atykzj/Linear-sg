@@ -55,11 +55,28 @@ def stack_img(img_list):
     '''
     img_list = list of paths to imgs
     '''
-    stacked =[]
+    stacked = []
+
+    # Init data for Kmeans
+    rgb_list, hex_list = [], []
+    # Define a function for the mapping in Kmeans
+    rgb2hex = lambda r, g, b: '#%02x%02x%02x' % (r, g, b)
+
     for i in img_list:
+        # Process Kmeans for each Image
+        temp_color = faiss_kmeans(i)
+        B = (temp_color*255).astype(int)  # convert to int
+        rgb_list.append(B)
+        hex_list.append(
+            [rgb2hex(*B[i, :]) for i in range(B.shape[0])]
+        )
+
+        # Stack for each image
         stacked.append(load_image(i))
-        input_y = np.vstack(stacked)
-        return input_y
+
+    input_y = np.vstack(stacked)
+
+    return input_y, rgb_list, hex_list
 
 def faiss_kmeans(img_path, filename="temp.jpg"):
     TEMPDIR = tempfile.gettempdir()
@@ -73,9 +90,6 @@ def faiss_kmeans(img_path, filename="temp.jpg"):
 
     with open(filename,"rb") as f:
         img = np.array(Image.open(f))
-    # img = tf.keras.preprocessing.image.load_img(filename,
-    #                                         grayscale=False, color_mode='rgb', target_size=(255,255),
-    #                                         interpolation='nearest')
 
     rgb_pixels = img.reshape((-1, 3)).astype("float32") / 255
 
