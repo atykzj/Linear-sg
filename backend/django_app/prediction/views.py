@@ -43,105 +43,15 @@ DB_ROOT = os.path.join(BASE_DIR, 'prediction/models/')
 CLOUD_DIR = 'https://storage.googleapis.com/linear-static-assets/subset/'
 
 
-# Create your views here.
-# Class based view to predict based on IRIS model
-class Style_Model_Predict(APIView):
+class Status_Check(APIView):
+    """Checking status, ensures app is running before predictions"""
+    def post(self, request=None, format=None):
 
-    # # Check if authenticated
-    # authentication_classes = [TokenAuthentication]
-    # permission_classes = [IsAuthenticated]
-    throttle_classes = [LimitedRateThrottle]
-
-    def post(self, request, format=None):
-        print("Find the name of style.")
-        if "data" in request.data:
-            data = request.data['data']
-        else:
-            data = request.data
-
-        img_list = []
-        for i in range(len(data)):
-            filename = f"00{i}.jpg"
-            img_list.append(
-                {filename: data[i]}
-            )
-
-        # find stacked vector from multiple images
-        input_y = inference.stack_img(img_list, "style")
-
-        #prediction
-        loaded_style_mlmodel = PredictionConfig.style_mlmodel
-        # prediction = inference.predict_image(input_y, loaded_style_mlmodel)
-        prediction = loaded_style_mlmodel.predict(input_y)
-        predictions = pd.DataFrame(prediction, columns=class_names)
-        sorted_cats = predictions.sum().sort_values(ascending=False).index
-        output = 'Your prefered style is ' + sorted_cats[0:3][0] + ' with a mix of ' + sorted_cats[0:3][1] + ' and ' +\
-                 sorted_cats[0:3][2]
-
-        # # clean up
-        # TEMPDIR = tempfile.gettempdir()
-        # files = glob.glob(TEMPDIR + '/*')
-        # for f in files:
-        #     os.remove(f)
-
-
-        response_dict = {"Results": output,
-                         "sorted_cats": sorted_cats}
-        print(response_dict)
-        return Response(response_dict, status=200)
-
-class Rec_Model_Predict(APIView):
-
-    # # Check if authenticated
-    # authentication_classes = [TokenAuthentication]
-    # permission_classes = [IsAuthenticated]
-    throttle_classes = [LimitedRateThrottle]
-
-    def post(self, request, format=None):
-        print("Find list of similar images.")
-        # data in form of list of dict, 'src': link
-        if "data" in request.data:
-            data = request.data['data']
-        else:
-            data = request.data
-
-        # Styles
-        loaded_Effnet_model = PredictionConfig.Effnet_model
-
-        # print(data.data)
-        # Get list of image links
-        # img_list = data['data']
-        img_list = []
-
-        for i in range(len(data)):
-            # print(data[i])
-            filename = f"00{i}.jpg"
-            img_list.append(
-                {filename: data[i]}
-            )
-
-        nb_closest_images = 8
-        IR = ImageRecommender(loaded_Effnet_model, DB_ROOT)
-        IR.load_db_dict()
-        # find stacked vector from multiple images, put in the type
-        input_y = inference.stack_img(img_list, "rec")
-
-        # extract feature and find closest images
-        # Return just the img index
-        closest_imgs = IR.find_similar(input_y, nb_closest_images)
-        response_dict = {"Results": closest_imgs
+        response_dict = {
+            "Status": "Instance running.",
         }
-        print(response_dict)
-
-        # # clean up
-        # TEMPDIR = tempfile.gettempdir()
-        # files = glob.glob(TEMPDIR + '/*')
-        # for f in files:
-        #     os.remove(f)
         return Response(response_dict, status=200)
 
-
-# Combine both
 class Rec_Style_Model_Predict(APIView):
     # # Check if authenticated
     # authentication_classes = [TokenAuthentication]
@@ -150,7 +60,6 @@ class Rec_Style_Model_Predict(APIView):
 
     def post(self, request, format=None):
         start_all =  timer()
-
 
         # Load Models   
         start = timer()
@@ -179,7 +88,6 @@ class Rec_Style_Model_Predict(APIView):
 
         # Style name
         # find stacked vector from multiple images
-
         start = timer()
         input_y_style = inference.stack_img(img_list, "style")
 
@@ -215,16 +123,6 @@ class Rec_Style_Model_Predict(APIView):
         print(response_dict)
 
         return Response(response_dict, status=200)
-
-# Class status
-class Status_Check(APIView):
-    def post(self, request=None, format=None):
-
-        response_dict = {
-            "Status": "Instance running.",
-        }
-        return Response(response_dict, status=200)
-
 
 # Class status
 class Color(APIView):
