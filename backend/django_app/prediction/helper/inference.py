@@ -27,27 +27,22 @@ opener.addheaders = [('User-Agent',
 urllib.request.install_opener(opener)
 
 # img loader
-def load_image(img_path, model_type, filename="temp.jpg"):
+def load_image(img_path, filename="temp.jpg"):
     TEMPDIR = tempfile.gettempdir()
     # Ensure that the file is saved to temp
     filename = TEMPDIR + '/' + filename
 
     try:
         urllib.request.urlretrieve(img_path, filename)
+
     except OSError:
         urllib.request.urlretrieve(TEMPDIR + '/' + img_path, filename)
 
-    if model_type == "style":
-        image_PIL = tf.keras.preprocessing.image.load_img(filename,
-                                                grayscale=False, color_mode='rgb', target_size=(256,256),
-                                                interpolation='nearest')
-    
-    elif model_type == "rec":
-        image_PIL = tf.keras.preprocessing.image.load_img(filename,
+    image_PIL = tf.keras.preprocessing.image.load_img(filename,
                                                 grayscale=False, color_mode='rgb', target_size=(224,224),
                                                 interpolation='nearest')
 
-    image = keras.preprocessing.image.img_to_array(image_PIL,
+    image = tf.keras.preprocessing.image.img_to_array(image_PIL,
                                            data_format=None,
                                            dtype=None)
 
@@ -56,26 +51,16 @@ def load_image(img_path, model_type, filename="temp.jpg"):
     os.remove(filename)
     return image
 
-def stack_img(img_list, model_type):
+def stack_img(img_list):
     '''
-    img_list = {filename: img_path}
+    img_list = list of paths to imgs
     '''
-    stacked = []
+    stacked =[]
     for i in img_list:
-        for key in i:
-            img = load_image(i[key], model_type, key)
-            stacked.append(img)
-    input_y = np.vstack(stacked)
+        stacked.append(load_image(i))
+        input_y = np.vstack(stacked)
+        return input_y
 
-    return input_y
-
-# img predictor
-def predict_image(input_y, model_path):
-    model = keras.models.load_model(model_path)
-    prediction = model.predict(input_y)
-    return prediction
-
-# Img
 def faiss_kmeans(img_path, filename="temp.jpg"):
     TEMPDIR = tempfile.gettempdir()
     # Ensure that the file is saved to temp

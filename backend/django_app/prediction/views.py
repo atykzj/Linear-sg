@@ -70,53 +70,33 @@ class Rec_Style_Model_Predict(APIView):
 
         # Get request data
         start = timer()
-        # data in form of list of dict, 'src': link
-        if "data" in request.data:
-            data = request.data['data']
-        else:
-            data = request.data
-        img_list = []
-
-        for i in range(len(data)):
-            # print(data[i])
-            filename = f"00{i}.jpg"
-            img_list.append(
-                {filename: data[i]}
-            )
+        img_list = request.data
         end = timer()
         print('Get request data：' + str(timedelta(seconds=end-start)))
 
-        # Style name
-        # find stacked vector from multiple images
+        # Predict Classes
         start = timer()
-        input_y_style = inference.stack_img(img_list, "style")
-
-        # run style predict
-        prediction_stylename = loaded_style_mlmodel.predict(input_y_style)
+        input_y = inference.stack_img(img_list)
+        prediction_stylename = loaded_style_mlmodel.predict(input_y)
         predictions_stylename = pd.DataFrame(prediction_stylename, columns=class_names)
         sorted_cats_stylename = predictions_stylename.sum().sort_values(ascending=False).index
         end = timer()
         print('Style Classifier：' + str(timedelta(seconds=end-start)))
 
-        # List of images
-        input_y_rec = inference.stack_img(img_list, "rec")
-        # extract features
+        ##—————————————————————————————————————————————————————————————————————————————————————————————————————————###
+        start = timer()
         IR = ImageRecommender(loaded_Effnet_model, DB_ROOT, CLOUD_DIR)
-        # find similar
+        end = timer()
+        print('Load db: ' + str(timedelta(seconds=end-start)))  
 
         start = timer()
-        IR.load_db_dict()
-        end = timer()
-        print('Load db: ' + str(timedelta(seconds=end-start)))   
-        
-        start = timer()
-        nb_closest_images = 6
-        closest_imgs = IR.find_similar(input_y_rec, nb_closest_images)
+        closest_imgs = IR.find_similar(input_y)
         response_dict = {
             "Category": sorted_cats_stylename,
             "Image": closest_imgs,
                          }
         end = timer()       
+
         print('Recommender: ' + str(timedelta(seconds=end-start)))          
         end_all =  timer()
         print('Total time: ' + str(timedelta(seconds=end_all-start_all)))   
