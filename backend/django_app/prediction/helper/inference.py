@@ -78,7 +78,7 @@ def stack_img(img_list):
 
     return input_y, rgb_list, hex_list
 
-def faiss_kmeans(img_path, filename="temp.jpg"):
+def faiss_kmeans(img_path, filename="temp.jpg", n_clusters=4):
     TEMPDIR = tempfile.gettempdir()
     # Ensure that the file is saved to temp
     filename = TEMPDIR + '/' + filename
@@ -97,7 +97,7 @@ def faiss_kmeans(img_path, filename="temp.jpg"):
     hsv_pixels = color.rgb2hsv(rgb_pixels)
 
     kmeans = faiss.Kmeans(d=hsv_pixels.shape[1],
-                                       k=5)
+                                       k=n_clusters)
     kmeans.train(hsv_pixels.astype(np.float32))
     cluster_centers_ = kmeans.centroids
 
