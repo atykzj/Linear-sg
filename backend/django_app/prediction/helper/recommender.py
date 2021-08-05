@@ -21,7 +21,7 @@ class ImageRecommender :
             input (list): list of URLs of images
             model (TF.Model): TF model with GlobalAveragePooling Layer as the Top Layer
             db_root (str): Path to image root folder
-            cloud_dir ([type]): root URL to the directed cloud bucket
+            cloud_dir ([type]): root URL to the cloud bucket
         """
         self.db_root = db_root
         self.cloud_dir = cloud_dir
@@ -30,6 +30,11 @@ class ImageRecommender :
         self.extractor_model = model
         
     def load_db_dict(self, db_name='dict.json'):
+        """loads a dictionary of extracted image features from a json file
+
+        Args:
+            db_name (str, optional): path to dictionary.json. Defaults to 'dict.json'.
+        """
         if 'https' in self.db_root:
             print('loading dict from url')
             response = urlopen(self.db_root + db_name)
@@ -46,6 +51,7 @@ class ImageRecommender :
         print(str(len(self.db_features)) + ' features loaded')
 
     def get_similarity_table(self, imgs_features, list_of_image):
+        """computes cosine similarity of extracted features with the loaded features in database"""
         cosSimilarities = cosine_similarity(imgs_features)
         cos_similarities_df = pd.DataFrame(cosSimilarities, 
                                            columns=list_of_image[:len(list_of_image)],
@@ -59,7 +65,7 @@ class ImageRecommender :
         nb_closest_images (int): top n imgs to return
         
         Returns:
-        closest_imgs (list): path to imgs
+        closest_imgs (list): path to imgs on cloud bucket
         """
 
         imgs_features = self.extractor_model.predict(stacked_imgs)

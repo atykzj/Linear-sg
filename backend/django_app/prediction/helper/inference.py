@@ -1,23 +1,15 @@
-from tensorflow import keras
-import tensorflow as tf
-from PIL import Image
-import numpy as np
-import pandas as pd
 import os
-from typing import Union, Callable
-
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"
-
-from io import BytesIO
-import urllib
-
 # Access temporary files
 import tempfile
+from PIL import Image
+import numpy as np
+import urllib
 
 # Kmeans Color Palette
 import faiss
 from skimage import color
-
+import tensorflow as tf
 
 # fake visitor to overcome denied request
 # Adding information about user agent
@@ -28,6 +20,15 @@ urllib.request.install_opener(opener)
 
 # img loader
 def load_image(img_path, filename="temp.jpg"):
+    """downloads web image to tempfile and convert into tensor
+
+    Args:
+        img_path (str): url to web image
+        filename (str, optional): name of the local saved file. Defaults to "temp.jpg".
+
+    Returns:
+        image (tensor): expanded image tensor
+    """
     TEMPDIR = tempfile.gettempdir()
     # Ensure that the file is saved to temp
     filename = TEMPDIR + '/' + filename
@@ -52,9 +53,16 @@ def load_image(img_path, filename="temp.jpg"):
     return image
 
 def stack_img(img_list):
-    '''
-    img_list = list of paths to imgs
-    '''
+    """loads web image from an input list and outputs list of tensors for downstream models
+
+    Args:
+        img_list (list): list of urls to web images
+
+    Returns:
+        input_y (tensor): stacked img tensors for feature extraction and classification
+        rgb_list (list): list of rgb values for Kmeans clustering
+        hex_list (list): list of rgb values for Kmeans clustering
+    """
     stacked = []
 
     # Init data for Kmeans
@@ -79,6 +87,7 @@ def stack_img(img_list):
     return input_y, rgb_list, hex_list
 
 def faiss_kmeans(img_path, filename="temp.jpg", n_clusters=4):
+
     TEMPDIR = tempfile.gettempdir()
     # Ensure that the file is saved to temp
     filename = TEMPDIR + '/' + filename
@@ -107,26 +116,3 @@ def faiss_kmeans(img_path, filename="temp.jpg", n_clusters=4):
     faiss_rgb_centers = color.hsv2rgb(faiss_hsv_centers)
 
     return faiss_rgb_centers
-
-if __name__ == "__main__":
-
-    # predefine class names
-    class_names = ['Contemporary',
-    'Eclectic',
-    'Industrial',
-    'Kitchen',
-    'Minimalistic',
-    'Modern',
-    'Retro',
-    'Scandinavian',
-    'Traditional',
-    'Transitional',
-    'Vintage']
-    #find stacked vector from multiple images
-    input_y = stack_img(img_list)
-
-    #prediction
-    prediction = predict_image(input_y, '../../../../../Users/antho/Desktop/linear_back/app/backend/django_app/prediction/mlmodel/models/styleclassifier.h5')
-    predictions = pd.DataFrame(prediction, columns=class_names)
-    sorted_cats = predictions.sum().sort_values(ascending=False).index
-    print('Your prefered style is ' + sorted_cats[0:3][0] + ' with a mix of ' + sorted_cats[0:3][1] + ' and ' + sorted_cats[0:3][2])
