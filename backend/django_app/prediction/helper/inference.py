@@ -87,6 +87,16 @@ def stack_img(img_list):
     return input_y, rgb_list, hex_list
 
 def faiss_kmeans(img_path, filename="temp.jpg", n_clusters=4):
+    """Using Facebook FAISS library for faster K-Means clustering computation of HSL values from the input images.
+
+    Args:
+        img_list (list): list of urls to web images
+        filename: If single input image.
+        n_clusters: By default we set 4 clusters but can be changed
+
+    Returns:
+        faiss_rgb_centers (list): Processed and converted the centers of these clusters to RGB values.
+    """
 
     TEMPDIR = tempfile.gettempdir()
     # Ensure that the file is saved to temp
