@@ -1,3 +1,3 @@
 from django.db import models
 
-# Create your models here.
+# Create a data model template for DB transactions if needed.

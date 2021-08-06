@@ -41,19 +41,47 @@ CLOUD_DIR = 'https://storage.googleapis.com/linear-static-assets/subset/'
 CLOUD_DIR2 = 'https://storage.googleapis.com/linear-static-assets/palettes/'
 
 class Status_Check(APIView):
-    """Checking status, ensures app is running before predictions"""
-    def post(self, request=None, format=None):
+    """Checking status, ensures app is running before predictions
 
+        Parameters:
+        APIView (class): is a class object template and add content to it.
+
+        Returns:
+        Response (class): returns a response API class within the APIView class.
+    """
+    def post(self, request=None, format=None):
+        """Add String to check the object.
+
+        Parameters:
+
+        Returns:
+        Response (class): returns a response object within the APIView class.
+        """
         response_dict = {
             "Status": "Instance running.",
         }
         return Response(response_dict, status=200)
 
 class Rec_Style_Model_Predict(APIView):
+    """Run recommender model on input data and return results.
+
+        Parameters:
+        APIView (class): is a class object template and add content to it.
+
+        Returns:
+        Response (class): returns a response API class within the APIView class.
+    """
     throttle_classes = [LimitedRateThrottle]
 
     def post(self, request, format=None):
-        
+        """Given input data of links of images, do preprocessing and inference.
+
+        Parameters:
+        request (dictionary): is a dict of Strings of links of images.
+
+        Returns:
+        Response (class): returns a response object within the APIView class.
+        """
         # Load Models   
         start = timer()
         mlmodel = PredictionConfig.mlmodel
@@ -97,7 +125,23 @@ class Rec_Style_Model_Predict(APIView):
 
 # Class status
 class Color(APIView):
+    """Run Color recommender model on input data and return results.
+
+        Parameters:
+        APIView (class): is a class object template and add content to it.
+
+        Returns:
+        Response (class): returns a response API class within the APIView class.
+    """
     def post(self, request=None, format=None):
+        """Given input data of links of images, do preprocessing and inference.
+
+        Parameters:
+        request (dictionary): is a dict of Strings of links of images.
+
+        Returns:
+        Response (class): returns a response object within the APIView class.
+        """
 
         start_all =  timer()
 

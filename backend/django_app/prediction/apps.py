@@ -15,6 +15,7 @@ except NameError:
 #disable GPU
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 class PredictionConfig(AppConfig):
+    """Class called upon start up of program, loading all parameters and models needed for programs."""
     CHECK_LOAD_ONCE = False
     name = 'prediction'
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
