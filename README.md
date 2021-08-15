@@ -20,17 +20,17 @@ Backend API Calls uses Django, originally have user authentication but decided t
 
 - Back End
 ```sh
-(lr) C:\...\backend\django_app>python manage.py runserver
+C:\...\backend\django_app>python manage.py runserver
 ```
 
 - Google cloud
 Set up user authentication on google cloud platform and then at folder repo run the following command.
-  ````sh
-  C:\...\backend\django_app>gcloud app deploy
-  ````
+````sh
+C:\...\backend\django_app>gcloud app deploy
+````
 
 ## Selenium Image Scraping
-Selenium scraping is like a spider to automate the scraping of images by imitating human scrolling and clicking
+Selenium scraping is a screenscraper that requires the use of a browser to automate the scraping of images by imitating human scrolling and clicking.
 ### Requirements
 - Download selenium
 - Download compatible chrome webdriver API from Google
