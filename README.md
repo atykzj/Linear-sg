@@ -42,3 +42,7 @@ Just follow the jupyter notebook, load the settings and configurations then run 
 
 
 ## Machine Learning Models and Process
+1. Recommend style, images, material palette using cosine similarity.
+10 Classes styles:
+```['Contemporary', 'Eclectic', 'Industrial', 'Minimalistic', 'Modern', 'Retro', 'Scandinavian', 'Traditional', 'Transitional', 'Vintage']```
+2. KNN - FAISS library for color palette generation of specified image.
