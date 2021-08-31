@@ -37,8 +37,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_ROOT = os.path.join(BASE_DIR, 'prediction/models/')
 
 # base_dir for cloud bucket
-CLOUD_DIR = 'https://storage.googleapis.com/linear-static-assets/subset/'
-CLOUD_DIR2 = 'https://storage.googleapis.com/linear-static-assets/palettes/'
+CLOUD_DIR = 'https://storage.googleapis.com/linear-sg/subset/'
+CLOUD_DIR2 = 'https://storage.googleapis.com/linear-sg/palettes/'
 
 class Status_Check(APIView):
     """Checking status, ensures app is running before predictions
